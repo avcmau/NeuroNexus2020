@@ -1,6 +1,13 @@
 # Basic game for static balance
 
 import pygame, sys
+import serial # import pyserial
+import io # import io for pyserial
+
+# declaring serial communication
+ser = serial.Serial()
+ser.baudrate = 9600
+ser.port = 'COM3'
 
 # Initialize Pygame
 pygame.init()
@@ -55,7 +62,15 @@ def drawScreen():
 
 
 # Main game loop
+ser.open() # open communication port
+initialMsg = ser.readline() # read initial line (which is usually garbage)
 while True:
+    # reads serial
+    msg = str(ser.readline()).replace("\\r\\n","")
+    msg = msg.replace("b'","")
+    msg = msg.replace("'","")
+    data = msg.split(',')
+    second = -int(data[1])
 
     time = pygame.time.get_ticks() # Keeps track of total runtime
 
@@ -70,6 +85,8 @@ while True:
             sys.exit()
 
     keys = pygame.key.get_pressed()     # Returns a list of boolean values representing the state of every key on the keyboard
+    
+    x += second # set position from serial data
 
     # Updates the square's position for each keystroke event
     if keys[left] and x > vel:
@@ -82,3 +99,5 @@ while True:
         y += vel
 
     drawScreen()
+
+ser.close()
